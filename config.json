@@ -1,0 +1,5 @@
+{
+    "log_path":"./logs/latest.log",
+    "llm_path":"D:/Codeprojects/Datawhale夏令营/Yuan llm/IEITYuan/Yuan2-2B-Mars-hf",
+    "embed_model_path":"."
+}
