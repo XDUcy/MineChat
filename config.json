@@ -1,5 +1,5 @@
 {
-    "log_path": "./logs/latest.log",
-    "llm_path": "D:/Datasets/Pretrained Models/IEITYuan/Yuan2-2B-Mars-hf",
-    "embed_model_path": "D:/Datasets/Pretrained Models/embed/AI-ModelScope/bge-small-zh-v1___5"
+    "log_path": "D:/CodeProjects/Datawhale夏令营/Yuan llm/MineChat/logs/latest.log",
+    "llm_dir": "D:/Datasets/Pretrained Models/IEITYuan/Yuan2-2B-Mars-hf",
+    "embed_model": "D:/Datasets/Pretrained Models/embed/AI-ModelScope/bge-small-zh-v1___5"
 }

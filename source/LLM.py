@@ -5,7 +5,7 @@ from langchain.llms.base import LLM
 
 from typing import Any, List, Optional
 
-class Yuan2B(LLM):
+class Yuan2B():
     """
     class for Yuan-2B LLM
     """
@@ -43,18 +43,23 @@ class Yuan2B(LLM):
             model_path, torch_dtype=torch.bfloat16, trust_remote_code=True
         ).cuda()
 
-    def _call(self, prompt: str, 
+    def __call__(self, prompt: str, 
               stop: Optional[List[str]] = None,
               **kwargs: Any) -> str:
         prompt = prompt.strip()
         prompt += "<sep>"
         inputs = self.tokenizer(prompt, return_tensors="pt").input_ids.cuda()
-        outputs = self.model.generate(inputs, do_sample=False, max_length=1024)
+        outputs = self.model.generate(inputs, do_sample=False, max_length=2048)
         output = self.tokenizer.decode(outputs[0])
         response = output.split("<sep>")[-1].split("<eod>")[0]
 
         return response
-    
+
     @property
     def _llm_type(self) -> str:
         return "Yuan2.0-2B"
+
+if __name__ == "__main__":
+    llm = Yuan2B("D:/Datasets/Pretrained Models/IEITYuan/Yuan2-2B-Mars-hf")
+    response = llm(prompt="你好")
+    print(response)

@@ -1,23 +1,83 @@
+import re
+import time
+import json
+from database.vectordb import vectordb
 from source.LLM import Yuan2B
-from source.embedding import EmbeddingModel
-from langchain_community.document_loaders import PyPDFLoader
-from langchain.memory import ConversationBufferMemory
-from langchain_community.vectorstores import Chroma
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains import ConversationalRetrievalChain
-from database.DataUtils import vectordb
+from mcrcon import MCRcon
+import asyncio
 
-prompt = """你是一个嵌入在Minecraft游戏中的智能助手，名叫MineChat，\\
-    你的任务是帮助玩家在游戏中解答各种问题。你的回答要简洁、准确，并且与游戏内的规则和内容相关联。\\
-    请你根据玩家问题以及以下上下文来回答最后的问题。
+class Asistant:
+    def __init__(self, log_path:str, llm_dir:Yuan2B, vectordb:vectordb, prompt_template:str, server:str, password:str):
+        print("Listener initialized.. Log path:" + log_path)
+        self.log_path = log_path
+        self.last_modified_time = 0
+        self.fp = None
+        self.llm = Yuan2B(llm_dir)
+        self.vectordb = vectordb
+        self.queue = asyncio.Queue()
+        self.prompt_template = prompt_template
+        self.rcon = MCRcon(server, password, port=25575)
+        try:
+            self.fp = open(log_path, "r", encoding="gb2312", errors='ignore') # mc server log编码为gb2312
+            self.fp.seek(0, 2)  # 文件指针移到末尾
+        except FileNotFoundError:
+            print("log file not found")
+        self.rcon.connect()
+
+    def _connect(self, ip, password):
+        return MCRcon(ip, password)
+
+    async def listen(self):
+        # listen调试方法，手动复制一行玩家信息即可，相当于新增消息
+        if self.fp is None:
+            print("Log file is not open.")
+            return
+        while True:
+            line = self.fp.readline()
+            if not line:
+                await asyncio.sleep(1)
+            else:
+                line.replace("\r\n", "\n")
+                if res := re.search(": <(.+)>(.+)", line):
+                    # 正则匹配出的格式： res.group1 玩家名, res.group2 内容
+                    username = res.group(1)
+                    content = res.group(2)
+                    msg_dict = {'user':username, 'content':content}
+                    await self.queue.put(msg_dict)
+                    print(f"{username}'s message {content} enqueued.")
+
+    async def process(self):
+        while True:
+            msg_dict = await self.queue.get()
+            context = ""
+            docs = self.vectordb.client.similarity_search(query=msg_dict['content'], k=5)
+            for i, doc in enumerate(docs):
+                context += "Context {}: {}\n".format(i, doc.page_content.replace('\n', ''))
+            response = self.llm(prompt=self.prompt_template.format(context=context, question=msg_dict['content']))
+            print(
+                self.prompt_template.format(
+                    context=context, question=msg_dict["content"]
+                )
+            )
+            print("----\n", response)
+            resp = self.rcon.command(f"/say {response}")
+
+async def MineChat(assistant):
+    await asyncio.gather(assistant.listen(), assistant.process())
+
+
+prompt_template = """你是一个嵌入在Minecraft游戏中的智能助手，名叫MineChat，\\
+    你的任务是帮助玩家使用游戏指令改善游戏体验，请你谨记提供给你的指令列表，根据玩家要求输出命令或简单回答即可。不要生成任何与编程相关的内容！
+    请记住，MineChat就是你，你就是MineChat，是一个Minecraft游戏内置助手。
     上下文：{context}
     问题：{question}
 """
-
 db = vectordb("MineChat")
 db.scan()
-print("Vectordb loaded, current knowledge:\n", db.log_data["knowledge_list"])
+cfg = json.load(open("config.json", "r", encoding='utf8'))
+log_path = cfg.get("log_path")
+llm_dir = cfg.get("llm_dir")
+embed_model = cfg.get("embed_model")
 
-results = db.client.similarity_search("Tell me more about Redstone?", k=5)
-for i, doc in enumerate(results):
-    print(f"({i}):", doc.page_content.replace('\n', ''))
+minechat = Asistant(log_path=log_path, llm_dir=llm_dir, vectordb=db, prompt_template=prompt_template, server='127.0.0.1', password='123456')
+asyncio.run(MineChat(minechat))

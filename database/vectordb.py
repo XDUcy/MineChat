@@ -2,14 +2,11 @@ import os
 import json
 from datetime import datetime
 from source.embedding import EmbeddingModel
-from langchain_community.document_loaders import PyPDFLoader
-from langchain.memory import ConversationBufferMemory
+from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains import ConversationalRetrievalChain
 from langchain_chroma import Chroma
-from chromadb.utils import embedding_functions
 
-# 维护向量知识库
+# 维护向量知识库 Done
 # 1. 一个Chroma对象 + 已向量化内容列表（json）
 # 2. 功能：
 #   (1)扫描./dataset文件夹，检查未更新的知识可选添加
@@ -47,19 +44,30 @@ class vectordb:
                              persist_directory=self.path)
 
     def scan(self, path='./dataset/'):
-        # 获取所有pdf文件
-        pdfs = [os.path.join(path, pdf) for pdf in os.listdir(path) if pdf]
-        new_pdfs = [pdf for pdf in pdfs if pdf not in self.log_data['knowledge_list']]
-        if new_pdfs:
+        # 获取所有docs
+        docs = [os.path.join(path, pdf) for pdf in os.listdir(path) if pdf.endswith('.pdf') or pdf.endswith('.txt')]
+        new_docs = [doc for doc in docs if doc not in self.log_data['knowledge_list']]
+        if new_docs:
             print("Found new knowledge, updating...")
-            self._update_db(new_pdfs)
-            self.log_data["knowledge_list"].extend(new_pdfs)
+            self.add_pdf(pdfs=[doc for doc in new_docs if doc.endswith('.pdf')])
+            self.add_txt(txts=[doc for doc in new_docs if doc.endswith('.txt')])
+            self.log_data["knowledge_list"].extend(new_docs)
             self.log_data["last_update"] = datetime.now().isoformat()
             self._update_log_file()
         else:
-            print("No new knowledge found.")
+            print("No new knowledge[pdf] found.")
 
-    def _update_db(self, pdfs):
+    def add_txt(self, txts):
+        # 读取txt文件
+        for txt in txts:
+            loader = TextLoader(txt, encoding='UTF-8')
+            text = loader.load()
+            text_splitter = RecursiveCharacterTextSplitter(separators=['\n', '\n\n'])
+            splits = text_splitter.split_documents(text)
+            self.client.add_documents(splits)
+
+
+    def add_pdf(self, pdfs):
         # 读取pdf文件
         for pdf in pdfs:
             loader = PyPDFLoader(pdf)
@@ -74,33 +82,3 @@ class vectordb:
     def _update_log_file(self):
         with open(self.log_file, 'w+') as log_file:
             json.dump(self.log_data, log_file, indent=4)
-
-"""
-pdf = [
-    "./dataset/Minecraft Crafting 70 Top Minecraft Essential Crafting-Techniques Guide Expo (Scotts, Jason) (Z-Library).pdf"
-]
-docs = []
-
-for file_path in pdf:
-    loader = PyPDFLoader(file_path)
-    docs.extend(loader.load())
-
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size = 500,
-    chunk_overlap = 150
-)
-splits = text_splitter.split_documents(docs)
-# print(len(splits), splits[2].page_content)
-
-embed = EmbeddingModel("D:/Datasets/Pretrained Models/embed/AI-ModelScope/bge-small-zh-v1___5")
-vectordb = Chroma.from_documents(
-    splits,
-    embedding=embed,
-    persist_directory='./database/chroma'
-)
-vectordb.persist()
-
-print(vectordb._collection.count())
-
-
-"""

@@ -2,6 +2,7 @@ import time
 import os
 from mcrcon import MCRcon
 import re
+import asyncio
 
 
 class Listener:
@@ -16,7 +17,7 @@ class Listener:
         except FileNotFoundError:
             print("log file not found")
 
-    def listen(self):
+    async def listen(self):
         # listen调试方法，手动复制一行玩家信息即可，相当于新增消息
         if self.fp is None:
             print('Log file is not open.')
@@ -30,12 +31,13 @@ class Listener:
                 if res := re.search(": <(.+)>(.+)", line):
                     # 正则匹配出的格式： res.group1 玩家名, res.group2 内容
                     msg = res.group(2)  # 暂时忽略玩家名
-                    print("我已经接收到了玩家信息，这将要给大模型来完成对话或者其他处理", msg)
+                    # print("我已经接收到了玩家信息，这将要给大模型来完成对话或者其他处理", msg)
+    
 
-
-log_path = './logs/latest.log'
-listener = Listener(log_path)
-listener.listen()
+if __name__ == '__main__':
+    log_path = './logs/latest.log'
+    listener = Listener(log_path)
+    listener.listen()
 
 """
 先不考虑Remote Control使用
