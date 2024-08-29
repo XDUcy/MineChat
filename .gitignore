@@ -2,3 +2,4 @@
 /dataset/*
 !/dataset/.gitkeep
 __pycache__/
+./database/my_VectorStore.py
