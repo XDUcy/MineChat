@@ -1,0 +1,4 @@
+/database/MineChat/
+/dataset/*
+!/dataset/.gitkeep
+__pycache__/
