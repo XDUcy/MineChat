@@ -1,8 +1,5 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from langchain.chains import LLMChain
-from langchain.llms.base import LLM
-
 from typing import Any, List, Optional
 
 class Yuan2B():

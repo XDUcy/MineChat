@@ -3,16 +3,20 @@ import time
 import json
 from database.vectordb import vectordb
 from source.LLM import Yuan2B
+from source.LLM_api import GLM4Flash
 from mcrcon import MCRcon
 import asyncio
 
 class Asistant:
-    def __init__(self, log_path:str, llm_dir:Yuan2B, vectordb:vectordb, prompt_template:str, server:str, password:str):
+    def __init__(self, log_path:str, llm, vectordb:vectordb, prompt_template:str, server:str, password:str, local = False):
         print("Listener initialized.. Log path:" + log_path)
         self.log_path = log_path
         self.last_modified_time = 0
         self.fp = None
-        self.llm = Yuan2B(llm_dir)
+        if local:
+            self.llm = Yuan2B(llm)
+        else:
+            self.llm = GLM4Flash(llm)
         self.vectordb = vectordb
         self.queue = asyncio.Queue()
         self.prompt_template = prompt_template
@@ -67,7 +71,7 @@ async def MineChat(assistant):
 
 
 prompt_template = """你是一个嵌入在Minecraft游戏中的智能助手，名叫MineChat，\\
-    你的任务是帮助玩家使用游戏指令改善游戏体验，请你谨记提供给你的指令列表，根据玩家要求输出命令或简单回答即可。不要生成任何与编程相关的内容！
+    你的任务是帮助玩家使用游戏指令改善游戏体验，请你不要输出任何markdown格式内容，根据玩家要求输出命令或简单回答即可。不要生成任何与编程相关的内容！
     请记住，MineChat就是你，你就是MineChat，是一个Minecraft游戏内置助手。
     上下文：{context}
     问题：{question}
@@ -78,6 +82,13 @@ cfg = json.load(open("config.json", "r", encoding='utf8'))
 log_path = cfg.get("log_path")
 llm_dir = cfg.get("llm_dir")
 embed_model = cfg.get("embed_model")
+zhipu_token = cfg.get("zhipu_token")
+local = cfg.get("local")
 
-minechat = Asistant(log_path=log_path, llm_dir=llm_dir, vectordb=db, prompt_template=prompt_template, server='127.0.0.1', password='123456')
+if local:
+    llm = llm_dir
+else:
+    llm = zhipu_token
+
+minechat = Asistant(log_path=log_path, llm=llm, vectordb=db, prompt_template=prompt_template, server='127.0.0.1', password='123456')
 asyncio.run(MineChat(minechat))
