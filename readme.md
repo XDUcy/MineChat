@@ -17,6 +17,8 @@ Powered by: 浪潮信息源大模型-2.0 2B + Datawhale 暑期夏令营第四期
 
 目前 MineChat 仅支持在服务端部署，需要服务端具有本地部署大模型条件。
 
+**9.3 更新**：已经新增对智谱(GLM4Flash)调用支持，默认使用该模型，需要在 config.json 中配置 zhipu_token。其他部分无需改动。
+
 > requirements: Python, Langchain, Chroma, MC Server
 
 1. 在`config.json`中修改服务器的 log 文件路径和本地大模型/embed 模型文件夹
