@@ -113,7 +113,7 @@ MineChat 诞生于 Datawhale 2024 暑期夏令营，也获得了一些认可和�
 -   浪潮信息“源”大模型 AI 夏令营 最佳应用奖
 -   2024 Datawhale AI 夏令营第四期 优秀作品奖
 
-# MineChat 团队成员
+# MineChat 贡献名单
 
 -   张成昱
 -   杨江琦琦

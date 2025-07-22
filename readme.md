@@ -8,9 +8,7 @@
 
 #
 
-Powered by: 浪潮信息源大模型-2.0 2B + Datawhale 暑期夏令营第四期
-
-—— MineChat 团队
+Developed by: MineChat 团队
 ![demo](./demo.png)
 
 # 部署指南
