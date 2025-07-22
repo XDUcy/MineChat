@@ -1,4 +1,5 @@
 from typing import List, Dict, Any, Optional
+from openai import OpenAI
 
 class GLM4Flash:
     def __init__(self, zhipu_token: str):
@@ -39,9 +40,44 @@ class GLM4Flash:
     def _llm_type(self) -> str:
         return "GLM4Flash"
 
+class Spark:
+    def __init__(self, spark_token: str):
+        self.url = "https://spark-api-open.xf-yun.com/v1"
+        self.spark_token = spark_token
+        self.client = OpenAI(api_key=spark_token, base_url=self.url)
+        self.history = []
+
+    def _warp_user_prompt(self, prompt: str) -> List[Dict[str, str]]:
+        prompt = [{"role":"system", "content":""}, {"role":"user", "content":prompt}]
+        self.history.extend(prompt)
+        return prompt
+
+    def _manage_history(self, response):
+        completion_dict = [
+            {
+                "role": response.choices[0].message.role,
+                "content": response.choices[0].message.content,
+            }
+        ]
+        self.history.extend(completion_dict)
+        print("History updated, current history:", self.history)
+
+    def __call__(self, prompt):
+        if isinstance(prompt, str):
+            self._warp_user_prompt(prompt)
+        response = self.client.chat.completions.create(
+            model="4.0Ultra",
+            messages=self.history,
+            stream=False
+        )
+        self._manage_history(response)
+        return response.choices[0].message.content
+
 
 if __name__ == "__main__":
     # llm = Yuan2B("D:/Datasets/Pretrained Models/IEITYuan/Yuan2-2B-Mars-hf")
-    llm = GLM4Flash("91ecc3cf6cf58d4b2d6c25ed7507ee5c.7cQgS9UjeIOzs4WX")
+    # llm = GLM4Flash("91ecc3cf6cf58d4b2d6c25ed7507ee5c.7cQgS9UjeIOzs4WX")
+    # llm = Spark("")
+    llm = None
     response = llm(prompt="你好")
     print(llm.history)

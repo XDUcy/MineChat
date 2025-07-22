@@ -83,12 +83,13 @@ log_path = cfg.get("log_path")
 llm_dir = cfg.get("llm_dir")
 embed_model = cfg.get("embed_model")
 zhipu_token = cfg.get("zhipu_token")
+spark_token = cfg.get("spark_token")
 local = cfg.get("local")
 
 if local:
     llm = llm_dir
 else:
-    llm = zhipu_token
+    llm = spark_token
 
 minechat = Asistant(log_path=log_path, llm=llm, vectordb=db, prompt_template=prompt_template, server='127.0.0.1', password='123456')
 asyncio.run(MineChat(minechat))

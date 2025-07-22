@@ -3,5 +3,6 @@
     "llm_dir": "D:/Datasets/Pretrained Models/IEITYuan/Yuan2-2B-Mars-hf",
     "embed_model": "D:/Datasets/Pretrained Models/embed/AI-ModelScope/bge-small-zh-v1___5",
     "zhipu_token": "your_tokens_here",
+    "spark_token": "your_tokens_here",
     "local": false
 }
