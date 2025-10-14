@@ -3,3 +3,5 @@
 !/dataset/.gitkeep
 __pycache__/
 ./database/my_VectorStore.py
+.env
+multi_agents.py

@@ -13,7 +13,13 @@ Developed by: MineChat 团队
 
 # 部署指南
 
-目前 MineChat 仅支持在服务端部署，需要服务端具有本地部署大模型条件。
+目前 MineChat 仅支持在服务端部署，~~需要服务端具有本地部署大模型条件。~~
+
+已支持智谱（GLM-4.5-Flash）模型调用。
+## v0.1O | Openai-agents构建
+> requirements: Python, openai-agents[litellm], Chroma, MC Server
+
+## v0.1L | LangChain构建
 
 **25.7.22 更新**：已经新增对讯飞星火大模型(Spark Ultra 4.0)调用支持
 

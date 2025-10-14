@@ -2,6 +2,8 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from typing import Any, List, Optional
 
+
+# 本地部署的大模型类，暂无开发计划。
 class Yuan2B():
     """
     class for Yuan-2B LLM
